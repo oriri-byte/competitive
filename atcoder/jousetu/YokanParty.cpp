@@ -1,64 +1,69 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-void update_score(int &high, int &low, int &score, bool beAble)
+bool checkDiv(long expected_score, long K, vector<long> &lenOfPeaces)
 {
-    if (beAble)
+  long cur_peaces = 0;
+  long div_point = 0;
+  for (int i = 0; i < lenOfPeaces.size(); i++)
+  {
+    div_point += lenOfPeaces[i];
+    if (div_point > expected_score)
     {
-        low = score + 1;
-        score = low + (high - low) / 2;
+      div_point = 0;
+      cur_peaces++;
     }
-    else
-    {
-        high = score - 1;
-        score = low + (high - low) / 2;
-    }
+  }
+  return cur_peaces >= K + 1;
 }
 
-bool divide_Yokan(int &score, vector<int> &A, int &K, int &N, int &L)
+void update_score(pair<long, long> &LH, bool larger)
 {
-    int cut_pos = 0;
-    int cnt = 0;
-    for (int i = 1; i < N + 1; i++)
-    {
-        // printf("cut = %d >= %d\n", A[i] - A[cut_pos], score);
-        if (A[i] - A[cut_pos] >= score && cnt < K)
-        {
-            // printf("div-point = %d\n", i);
-            cut_pos = i;
-            cnt++;
-        }
-    }
-    return (cnt == K) && (L - A[cut_pos] >= score);
+  long center = (LH.second + LH.first) / 2;
+  long dist = (LH.second - LH.first) / 2;
+  if (larger)
+  {
+    LH.first = center;
+    // return center - dist;
+  }
+  else
+  {
+    LH.second = center;
+    // return center + dist;
+  }
 }
 
 int main()
 {
-    int N, L, K;
-    cin >> N >> L >> K;
-    vector<int> A(N + 1);
-    for (int i = 0; i < N; i++)
-        cin >> A[i + 1];
-    int low = 1;
-    int high = L;
-    int score = L / 2;
-    int cut_pos, cnt;
-    int ans = 0;
-    while (low <= high)
-    {
-        cut_pos = 0;
-        cnt = 0;
-        // printf("score = %d\n", score);
-        bool beAble = divide_Yokan(score, A, K, N, L);
-        // printf("k=%d\n",k);
-        // printf("cnt = %d\n",cnt);
-        // printf("last = %d\n", A[N] - A[div]);
-        if (beAble)
-            ans = max(ans, score);
-        update_score(high, low, score, beAble);
-        // printf("high = %d, low = %d,score = %d\n", high, low, score);
-    }
-    cout << ans;
+  long N, L, K;
+  cin >> N >> L >> K;
+  vector<long> A;
 
-    return 0;
+  for (int i = 0; i < N; i++)
+  {
+    long a;
+    cin >> a;
+    A.push_back(a);
+  }
+  A.push_back(L);
+
+  vector<long> lenOfPeaces;
+  long prev = 0;
+  for (int i = 0; i < A.size(); i++)
+  {
+    lenOfPeaces.push_back(A[i] - prev);
+    prev = A[i];
+    // cout << lenOfPeaces[i] << endl;
+  }
+
+  pair<long, long> LH = make_pair(0, L);
+  while (LH.second - LH.first > 1)
+  {
+    long cur_score = (LH.second + LH.first) / 2;
+    // printf("L:%ld, R:%ld, center:%ld\n", LH.first, LH.second, cur_score);
+    bool canDivide = checkDiv(cur_score, K, lenOfPeaces);
+    update_score(LH, canDivide);
+  }
+  cout << LH.second << endl;
+  return 0;
 }
